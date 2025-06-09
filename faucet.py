@@ -9,18 +9,16 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-# Correct path to the keypair file
-CREATOR_KEYPAIR_PATH = "/opt/render/project/src/faucet-keypair.json"
+# Load keypair from Render environment variable
+FAUCET_SECRET = os.environ.get("FAUCET_KEYPAIR_JSON")
+if not FAUCET_SECRET:
+    raise ValueError("Missing FAUCET_KEYPAIR_JSON in environment variables")
 
-def load_keypair(path):
-    with open(path, 'r') as f:
-        secret = json.load(f)
-        return Keypair.from_bytes(bytes(secret))
-
-creator = load_keypair(CREATOR_KEYPAIR_PATH)
+secret = json.loads(FAUCET_SECRET)
+creator = Keypair.from_bytes(bytes(secret))
 client = Client("https://api.devnet.solana.com")
 
-TOKEN_MINT_ADDRESS = "9tc7JNiGyTpPqzgaJMJnQWhLsuPWusVXRR7HgQ3ng5xt"  # Your Rampana token mint
+TOKEN_MINT_ADDRESS = "9tc7JNiGyTpPqzgaJMJnQWhLsuPWusVXRR7HgQ3ng5xt"  # Rampana token mint
 
 @app.route("/")
 def health():
@@ -34,7 +32,6 @@ def claim():
         return jsonify({"error": "Missing wallet address"}), 400
 
     try:
-        # Airdrop a small amount of SOL to the wallet to ensure they can receive tokens
         response = client.request_airdrop(Pubkey.from_string(wallet_address), 1000000000)  # 0.001 SOL
         return jsonify({"success": True, "tx": response["result"]})
     except Exception as e:
