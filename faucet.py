@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Correct path to the keypair file
-CREATOR_KEYPAIR_PATH = os.path.join(os.path.dirname(__file__), "faucet-keypair.json")
+CREATOR_KEYPAIR_PATH = "/opt/render/project/src/faucet-keypair.json"
 
 def load_keypair(path):
     with open(path, 'r') as f:
